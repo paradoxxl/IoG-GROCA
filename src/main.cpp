@@ -7,6 +7,8 @@
 
 #include <ezTime.h>
 
+#include "utilityTicker.h"
+#include "lightTimer.h"
 
 #define LEDSTATE_ON 0x0
 #define LEDSTATE_OFF 0x1
@@ -36,10 +38,10 @@ String statusTopic = ("cabinet/" + hostname + "/status");
 //StatusJSON
 DynamicJsonDocument doc(1024);
 
-unsigned long lastTime;
+UtilityTicker statusUpdateTimer;
 Timezone timeZone;
 
-
+lightTimer lightscheduler;
 
 void rootPage()
 {
@@ -47,10 +49,6 @@ void rootPage()
   Server.send(200, "text/plain", content);
 }
 
-bool canSendStatusUpdate()
-{
-  return (millis() - lastTime > 5000);
-}
 
 String stateStr()
 {
@@ -69,7 +67,7 @@ String stateStr()
 
 void sendStatusUpdate()
 {
-  lastTime = millis();
+  statusUpdateTimer.rst();
 
   Serial.print("create status json ");
   Serial.println(timeZone.dateTime());
@@ -144,6 +142,9 @@ void setup()
   delay(1000);
 
 
+  statusUpdateTimer = UtilityTicker(1000);
+
+
   Server.on("/", rootPage);
   if (Portal.begin())
   {
@@ -163,6 +164,8 @@ void setup()
   setInterval(10);
 	setDebug(INFO);
 
+
+  lightscheduler = lightTimer(nullptr,1,&timeZone, 2000);
 }
 
 
@@ -206,7 +209,9 @@ void loop()
   mqttClient.loop();
   
 
-  if (canSendStatusUpdate()){
+  statusUpdateTimer.loop();
+  if (statusUpdateTimer.hasTicked()){
+    statusUpdateTimer.rst();
     sendStatusUpdate();
   }
 
@@ -226,5 +231,6 @@ void loop()
     break;
   }
 
+  lightscheduler.loop();
   events();
 }
