@@ -5,29 +5,36 @@
 #include <ezTime.h>
 
 #include "utilityTicker.h"
+#include "timeEvent.h"
+#include "lightStateTree.h"
 
-struct timeEvent{
-    bool turnOn;
-    uint8_t hour;
-    uint8_t minute;
-};
 
 class lightTimer
 {
 private:
-    timeEvent sortedEvents[];
+    lightStateTree *stateTree;
     Timezone *timezone;
-    boolean _isOn;
+    bool _isOn;
+    float _intensity;
     UtilityTicker ticker;
+
+    boolean overrideActive;
+    boolean overrideState;
+    time_t overrideEnd;
+    float overrideIntensity;
+    
 public:
-    lightTimer(timeEvent events[], int length, Timezone *tz, int refreshRateMs);
+    lightTimer(timeEvent *events[], int length, Timezone *tz, int refreshRateMs);
     lightTimer();
 
-    void setSchedule(timeEvent events[], int length);
+    void setSchedule(timeEvent *events[], int length);
 
-    boolean isOn();
+    void setOverride(int durationMiliseconds, boolean state, float intensity);
+    void removeOverride();
+    bool getOnStatus();
+    float getIntensity();
 
-    void sortEvents(timeEvent unsortedEvents[], int length);
+    
     void evaluateState();
 
     void loop();
