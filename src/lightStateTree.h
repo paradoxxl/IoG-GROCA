@@ -4,8 +4,8 @@
 #include "Arduino.h"
 #include "timeEvent.h"
 
-const uint8_t MAXTIME = 2400;
-const uint8_t MAXTIMEENTRY =  MAXTIME-1;
+const uint16_t MAXTIME = 2400;
+const uint16_t MAXTIMEENTRY =  MAXTIME-1;
 
 
 
