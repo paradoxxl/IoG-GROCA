@@ -9,16 +9,12 @@
 
 #include "utilityTicker.h"
 #include "lightTimer.h"
+#include "lightState.h"
 
-#define LEDSTATE_ON 0x0
-#define LEDSTATE_OFF 0x1
-#define LEDSTATE_BLINK 0x2
 
 #define ONBOARDLED 5 // Built in LED on ESP-12/ESP-07
 #define SHOW_TIME_PERIOD 5000
 
-
-byte ledState = LEDSTATE_OFF;
 
 const String hostname = "groca1";
 
@@ -50,20 +46,6 @@ void rootPage()
 }
 
 
-String stateStr()
-{
-  switch (ledState)
-  {
-  case LEDSTATE_ON:
-    return "ON";
-  case LEDSTATE_OFF:
-    return "OFF";
-  case LEDSTATE_BLINK:
-    return "BLINK";
-  default:
-    return "UNKNOWN";
-  }
-}
 
 void sendStatusUpdate()
 {
@@ -73,7 +55,7 @@ void sendStatusUpdate()
   Serial.println(timeZone.dateTime());
   doc.clear();
   doc["timestamp"] = timeZone.now();
-  doc["ledState"] = stateStr();
+  doc["ledState"] = lightscheduler.getOnStatus();
 
   Serial.println("serialize status json");
   char res[128];
@@ -111,21 +93,8 @@ void callback(char *topic, byte *message, unsigned int length)
   if (String(topic).equals(commandTopic))
   {
     Serial.print("Changing output to ");
-    if (messageTemp == "on")
-    {
-      Serial.println("on");
-      ledState = LEDSTATE_ON;
-    }
-    else if (messageTemp == "off")
-    {
-      Serial.println("off");
-      ledState = LEDSTATE_OFF;
-    }
-    else if (messageTemp == "blink")
-    {
-      Serial.println("blink");
-      ledState = LEDSTATE_BLINK;
-    }
+    lightState tmp = lightState(messageTemp);
+    Serial.println(tmp);
   }
   sendStatusUpdate();
 }
@@ -215,20 +184,11 @@ void loop()
     sendStatusUpdate();
   }
 
-  switch (ledState)
+  if(lightscheduler.getOnStatus())
   {
-  case LEDSTATE_ON:
     digitalWrite(LED_BUILTIN, HIGH);
-    break;
-  case LEDSTATE_OFF:
+  }else{
     digitalWrite(LED_BUILTIN, LOW);
-    break;
-  default:
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(1000);
-    break;
   }
 
   lightscheduler.loop();

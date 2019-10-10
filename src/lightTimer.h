@@ -6,13 +6,14 @@
 
 #include "utilityTicker.h"
 #include "timeEvent.h"
-#include "lightStateTree.h"
+#include "stateTree.h"
+#include "lightState.h"
 
 
 class lightTimer
 {
 private:
-    lightStateTree *stateTree;
+    stateTree<lightState> *_stateTree;
     Timezone *timezone;
     bool _isOn;
     float _intensity;
@@ -24,10 +25,10 @@ private:
     float overrideIntensity;
     
 public:
-    lightTimer(timeEvent *events[], int length, Timezone *tz, int refreshRateMs);
+    lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs);
     lightTimer();
 
-    void setSchedule(timeEvent *events[], int length);
+    void setSchedule(timeEvent<lightState> *events[], int length);
 
     void setOverride(int durationMiliseconds, boolean state, float intensity);
     void removeOverride();

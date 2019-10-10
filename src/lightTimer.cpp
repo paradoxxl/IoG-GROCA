@@ -1,13 +1,16 @@
 #include "Arduino.h"
 #include "lightTimer.h"
 #include "utilityTicker.h"
-#include "lightStateTree.h"
+#include "stateTree.h"
+#include "lightState.h"
+
+// XXX: https://stackoverflow.com/questions/21295935/can-a-c-enum-class-have-methods
 
 lightTimer::lightTimer(){}
-lightTimer::lightTimer(timeEvent *events[], int length, Timezone *tz, int refreshRateMs){
+lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs){
     timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
-    stateTree = new lightStateTree(events, length);
+    _stateTree = new stateTree<lightState>(events, length, lightState::ON);
 }
 
 bool lightTimer::getOnStatus(){
@@ -26,8 +29,8 @@ float lightTimer::getIntensity(){
 }
 
 
-void lightTimer::setSchedule(timeEvent *events[], int length){
-    stateTree = new lightStateTree(events,length);
+void lightTimer::setSchedule(timeEvent<lightState> *events[], int length){
+    _stateTree = new stateTree<lightState>(events,length, lightState::OFF);
 }
 void lightTimer::setOverride(int durationMiliseconds, boolean state, float intensity){
     overrideActive = true;
@@ -49,7 +52,9 @@ void lightTimer::evaluateState(){
             overrideActive = false;
         }
     }
-    _isOn = stateTree->getState(timezone->hour,timezone->minute);
+    //timezone->hour,timezone->minute
+    lightState *s = _stateTree->getState(0,0);
+    _isOn = s->State();
 }
 
 void lightTimer::loop(){
