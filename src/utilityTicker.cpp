@@ -4,8 +4,7 @@
 UtilityTicker::UtilityTicker(){}
 UtilityTicker::UtilityTicker(int miliseconds)
 {
-    ms = miliseconds;
-    nextTick = millis() + ms;
+    nextTick = millis() + miliseconds;
 }
 bool UtilityTicker::hasTicked()
 {

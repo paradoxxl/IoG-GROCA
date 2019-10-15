@@ -2,8 +2,8 @@
 #define timeEvent_h
 
 
-struct timeEvent{
-    bool state;
+template<typename T> struct timeEvent{
+    T *state;
     uint8_t hour;
     uint8_t minute;
 };
