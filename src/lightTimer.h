@@ -14,7 +14,7 @@ class lightTimer
 {
 private:
     stateTree<lightState> *_stateTree;
-    Timezone *timezone;
+    Timezone *_timezone;
     bool _isOn;
     float _intensity;
     UtilityTicker ticker;

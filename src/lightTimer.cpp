@@ -3,12 +3,14 @@
 #include "utilityTicker.h"
 #include "stateTree.h"
 #include "lightState.h"
+#include <ezTime.h>
+
 
 // XXX: https://stackoverflow.com/questions/21295935/can-a-c-enum-class-have-methods
 
 lightTimer::lightTimer(){}
 lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs){
-    timezone = tz;
+    _timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
     _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::ON));
 }
@@ -52,8 +54,7 @@ void lightTimer::evaluateState(){
             overrideActive = false;
         }
     }
-    //timezone->hour,timezone->minute
-    lightState *s = _stateTree->getState(0,0);
+    lightState *s = _stateTree->getState(_timezone->hour(),_timezone->minute());
     _isOn = s->State();
 }
 
