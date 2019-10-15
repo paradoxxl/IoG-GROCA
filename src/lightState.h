@@ -21,6 +21,7 @@ public:
   bool operator==(lightState a) { return value == a.value; }
   bool operator!=(lightState a) { return value != a.value; }
   bool operator<<(lightState a) { return value == ON? "ON":"OFF"; } 
+  operator bool() const {return value==ON;}
 
 
 boolean State(){

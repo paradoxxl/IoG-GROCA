@@ -10,7 +10,7 @@ lightTimer::lightTimer(){}
 lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs){
     timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
-    _stateTree = new stateTree<lightState>(events, length, lightState::ON);
+    _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::ON));
 }
 
 bool lightTimer::getOnStatus(){
@@ -30,7 +30,7 @@ float lightTimer::getIntensity(){
 
 
 void lightTimer::setSchedule(timeEvent<lightState> *events[], int length){
-    _stateTree = new stateTree<lightState>(events,length, lightState::OFF);
+    _stateTree = new stateTree<lightState>(events,length, new lightState(lightState::OFF));
 }
 void lightTimer::setOverride(int durationMiliseconds, boolean state, float intensity){
     overrideActive = true;
