@@ -34,7 +34,7 @@ Communicator::Communicator(String mqttBrokerIP, uint16_t mqttBrokerPort, String 
     _subscriptionHandlers = subscriptionHandlers;
     _numHandlers = lenHandlers;
 
-    _mqttClient.setCallback(this.onMqttMessageReceived);
+    _mqttClient.setCallback(std::bind(&Communicator::onMqttMessageReceived, this,  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _mqttClient.setServer(_mqttBrokerIP.c_str(), _mqttBrokerPort);
     _mqttClient.connect(_hostname.c_str(), _username.c_str(), _password.c_str());
     subscribe();
