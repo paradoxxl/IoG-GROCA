@@ -15,42 +15,72 @@ void Communicator::loop()
     _mqttClient.loop();
 }
 
-void Communicator::send(char *text, char *topic)
+bool Communicator::send(char *text, char *topic)
 {
+    return _mqttClient.publish(topic, text);
 }
 
 void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned int length)
 {
+    Serial.printf("received message on topic: %s\n", topic);
+    Serial.printf("command: %s\n", message);
+    for (int i = 0; i < _numHandlers; i++)
+    {
+        if (strcmp(_subscriptionHandlers[i].Topic, topic))
+        {
+            Serial.printf("matched topic: %s\n", _subscriptionHandlers[i].Topic);
+            //String cmd(message,length)
+            Serial.printf("%s", message);
+            _subscriptionHandlers[i].Callback((char *)message);
+            break;
+        }
+        else
+        {
+            Serial.printf("did not match topic: %s\n", _subscriptionHandlers[i].Topic);
+        }
+    }
 }
 
-Communicator::Communicator(String mqttBrokerIP, uint16_t mqttBrokerPort, String mqttUsername, String mqttPassword, String mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers)
+Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers)
 {
     _mqttClient = PubSubClient(_wifiClientSecure);
     _username = mqttUsername;
     _password = mqttPassword;
     _mqttBrokerIP = mqttBrokerIP;
     _mqttBrokerPort = mqttBrokerPort;
+    _hostname = mqttClientHostname;
 
     _subscriptionHandlers = subscriptionHandlers;
     _numHandlers = lenHandlers;
 
-    _mqttClient.setCallback(std::bind(&Communicator::onMqttMessageReceived, this,  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    _mqttClient.setServer(_mqttBrokerIP.c_str(), _mqttBrokerPort);
-    _mqttClient.connect(_hostname.c_str(), _username.c_str(), _password.c_str());
+    Serial.println("communicator constructor: setcallback ...");
+    _mqttClient.setCallback(std::bind(&Communicator::onMqttMessageReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    Serial.println("communicator constructor: setcallback OK");
+    Serial.println("communicator constructor: setserver ...");
+    _mqttClient.setServer(_mqttBrokerIP, _mqttBrokerPort);
+    Serial.println("communicator constructor: setserver OK");
+
+    Serial.println("communicator constructor: connect ...");
+
+    _mqttClient.connect(_hostname, _username, _password);
+    Serial.println("communicator constructor: connect OK");
+
     subscribe();
 }
 
 void Communicator::subscribe()
 {
+    Serial.println("communicator subscribe: setcallback now");
     if (_mqttClient.connected())
     {
         for (int i = 0; i < _numHandlers; i++)
         {
-            _mqttClient.subscribe(_subscriptionHandlers[i].Topic.c_str());
+            _mqttClient.subscribe(_subscriptionHandlers[i].Topic);
             Serial.print("Subscribe to: ");
             Serial.println(_subscriptionHandlers[i].Topic);
         }
     }
+    Serial.println("communicator subscribe: setcallback OK");
 }
 
 void Communicator::reconnect()
@@ -58,7 +88,7 @@ void Communicator::reconnect()
 
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (_mqttClient.connect(_hostname.c_str(), _username.c_str(), _password.c_str()))
+    if (_mqttClient.connect(_hostname, _username, _password))
     {
         Serial.println("connected");
         subscribe();

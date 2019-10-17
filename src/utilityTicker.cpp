@@ -10,15 +10,16 @@ bool UtilityTicker::hasTicked()
 {
     if (ticked)
     {
-        ticked = !ticked;
+        ticked = false;
         return true;
     }
-    return ticked;
+    return false;
 }
 
 void UtilityTicker::rst()
 {
     nextTick = millis() + ms;
+    ticked = false;
 }
 
 void UtilityTicker::loop()

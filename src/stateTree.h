@@ -11,7 +11,7 @@ template <class T>
 struct stateNode
 {
     uint16_t time;
-    T* state;
+    T *state;
     stateNode<T> *parent;
     stateNode<T> *left;
     stateNode<T> *right;
@@ -22,7 +22,7 @@ class stateTree
 {
 private:
     stateNode<T> *rootNode;
-    T* _defaultState;
+    T *_defaultState;
     stateNode<T> *nodeFromEvent(timeEvent<T> event);
 
     void insertNode(stateNode<T> *node, stateNode<T> *newNode);
@@ -33,10 +33,10 @@ private:
 
 public:
     stateTree();
-    stateTree(timeEvent<T> *events[], int length, T* defaultState);
-    T* getState(uint8_t hour, uint8_t minute);
+    stateTree(timeEvent<T> *events[], int length, T *defaultState);
+    T *getState(uint8_t hour, uint8_t minute);
     void insertEvents(timeEvent<T> *events[], int length);
-    void insert(uint8_t hour, uint8_t minute, T* state);
+    void insert(uint8_t hour, uint8_t minute, T *state);
     void remove(uint8_t hour, uint8_t minute);
 };
 
@@ -60,13 +60,21 @@ stateTree<T>::stateTree(timeEvent<T> *events[], int length, T *defaultState)
 }
 
 template <class T>
-T* stateTree<T>::getState(uint8_t hour, uint8_t minute)
+T *stateTree<T>::getState(uint8_t hour, uint8_t minute)
 {
-    if (rootNode == NULL)
+    Serial.println("stateTree<T>::getState");
+    if (rootNode == nullptr)
     {
+        Serial.println("stateTree<T>::getState rootnode null");
+        Serial.println("stateTree<T>::getState defaultstate null " + (_defaultState == nullptr));
+
         return _defaultState;
     }
+    Serial.println("stateTree<T>::getState searchLTNode");
+
     stateNode<T> *n = searchLTNode(rootNode, timeMerge(hour, minute));
+    Serial.println("stateTree<T>::getState searchLTNode ok");
+
     if (n != NULL)
     {
         return n->state;
@@ -75,7 +83,7 @@ T* stateTree<T>::getState(uint8_t hour, uint8_t minute)
 }
 
 template <class T>
-void stateTree<T>::insert(uint8_t hour, uint8_t minute, T* state)
+void stateTree<T>::insert(uint8_t hour, uint8_t minute, T *state)
 {
     stateNode<T> *newNode = {};
     newNode->time = timeMerge(hour, minute);
@@ -132,25 +140,30 @@ uint16_t stateTree<T>::timeMerge(uint8_t hour, uint8_t minute)
 }
 
 template <class T>
-stateNode<T> * stateTree<T>::searchLTNode(stateNode<T> *node, uint16_t time)
+stateNode<T> *stateTree<T>::searchLTNode(stateNode<T> *node, uint16_t time)
 {
+    Serial.println("stateTree<T>::searchLTNode " + (node == nullptr));
+
     if (node->time == time)
     {
+        Serial.println("stateTree<T>::searchLTNode node->time == time ");
         return node;
     }
     if (time < node->time)
     {
-        if (node->left == NULL)
+        Serial.println("stateTree<T>::searchLTNode time < node->time");
+
+        if (node->left == nullptr)
         {
             return node;
         }
         stateNode<T> *n = searchLTNode(node->left, time);
         return (abs(n->time - time) > abs(node->time - time)) ? node : n;
     }
-    return NULL;
+    return nullptr;
 }
 template <class T>
-stateNode<T> * stateTree<T>::getLatestElement(stateNode<T> *node)
+stateNode<T> *stateTree<T>::getLatestElement(stateNode<T> *node)
 {
     if (node->right == NULL)
     {

@@ -5,64 +5,93 @@
 #include "lightState.h"
 #include <ezTime.h>
 
-
 // XXX: https://stackoverflow.com/questions/21295935/can-a-c-enum-class-have-methods
 
-lightTimer::lightTimer(){}
-lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs){
+lightTimer::lightTimer() {}
+lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs)
+{
     _timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
     _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::ON));
 }
 
-bool lightTimer::getOnStatus(){
+bool lightTimer::getOnStatus()
+{
     return _isOn;
 }
 
-float lightTimer::getIntensity(){
-    if(overrideActive){
-        if(now() < overrideEnd){
-                return overrideIntensity; 
-        }else{
+float lightTimer::getIntensity()
+{
+    if (overrideActive)
+    {
+        if (now() < overrideEnd)
+        {
+            return overrideIntensity;
+        }
+        else
+        {
             overrideActive = false;
         }
     }
     return _intensity;
 }
 
-
-void lightTimer::setSchedule(timeEvent<lightState> *events[], int length){
-    _stateTree = new stateTree<lightState>(events,length, new lightState(lightState::OFF));
+void lightTimer::setSchedule(timeEvent<lightState> *events[], int length)
+{
+    _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::OFF));
 }
-void lightTimer::setOverride(int durationMiliseconds, boolean state, float intensity){
+void lightTimer::setOverride(int durationMiliseconds, boolean state, float intensity)
+{
     overrideActive = true;
-    overrideEnd = now()+durationMiliseconds;
+    overrideEnd = now() + durationMiliseconds;
     overrideState = state;
     overrideIntensity = intensity;
 }
 
-void lightTimer::removeOverride(){
+void lightTimer::removeOverride()
+{
     overrideActive = false;
 }
 
-void lightTimer::evaluateState(){
-    if(overrideActive){
-        if(now() < overrideEnd){
-                _isOn = overrideState;
-                return;
-        }else{
+void lightTimer::evaluateState()
+{
+    Serial.println("lightTimer evaluate state");
+
+    if (overrideActive)
+    {
+        if (now() < overrideEnd)
+        {
+            Serial.println("lightTimer override active");
+
+            _isOn = overrideState;
+            return;
+        }
+        else
+        {
+            Serial.println("lightTimer override deactivated now");
+
             overrideActive = false;
         }
     }
-    lightState *s = _stateTree->getState(_timezone->hour(),_timezone->minute());
+    Serial.println("lightTimer getState");
+
+    lightState *s = _stateTree->getState(_timezone->hour(), _timezone->minute());
+    Serial.println("lightTimer getState ok");
+
+    Serial.println("lightTimer ison: ");
+
     _isOn = s->State();
 }
 
-void lightTimer::loop(){
+void lightTimer::loop()
+{
     ticker.loop();
-    if (ticker.hasTicked()){
+    if (ticker.hasTicked())
+    {
+        Serial.println("lightTimer loop start");
+
         ticker.rst();
         evaluateState();
-        Serial.println("lightTimer loop");
+        Serial.println("lightTimer loop end");
     }
 }

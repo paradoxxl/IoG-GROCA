@@ -10,11 +10,10 @@
 #include "utilityTicker.h"
 #include "lightTimer.h"
 #include "lightState.h"
-
+#include "communicator.h"
 
 #define ONBOARDLED 5 // Built in LED on ESP-12/ESP-07
 #define SHOW_TIME_PERIOD 5000
-
 
 const String hostname = "groca1";
 
@@ -22,14 +21,24 @@ WebServer Server;
 AutoConnect Portal(Server);
 
 //MQTT
+Communicator *mqttComm = nullptr;
 const char *mqtt_server = "192.168.0.9";
-WiFiClientSecure wifiClient;
-PubSubClient mqttClient(wifiClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
-String commandTopic = ("cabinet/" + hostname + "/command");
+const char *mqtt_username = "groca1";
+const char *mqtt_password = "T1kDKCqNzc7QQa4Lp9B4";
+const char *mqtt_id = "groca1";
+const uint16_t mqtt_Port = 8883;
+
+// WiFiClientSecure wifiClient;
+// PubSubClient mqttClient(wifiClient);
+// long lastMsg = 0;
+// char msg[50];
+// int value = 0;
+// String commandTopic = ("cabinet/" + hostname + "/command");
 String statusTopic = ("cabinet/" + hostname + "/status");
+
+String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/override/enable");
+String cmdLighhOverrideDisableTopic = ("cabinet/" + hostname + "/command/override/disable");
+
 
 //StatusJSON
 DynamicJsonDocument doc(1024);
@@ -44,8 +53,6 @@ void rootPage()
   char content[] = "Hello, world";
   Server.send(200, "text/plain", content);
 }
-
-
 
 void sendStatusUpdate()
 {
@@ -64,7 +71,7 @@ void sendStatusUpdate()
   {
     Serial.println("res ok");
     Serial.println(res);
-    if (mqttClient.publish(statusTopic.c_str(), res))
+    if (mqttComm->send(res, &statusTopic[0]))
     {
       Serial.println("Sent status successfully");
     }
@@ -75,31 +82,39 @@ void sendStatusUpdate()
   }
 }
 
-void callback(char *topic, byte *message, unsigned int length)
+// void callback(char *topic, byte *message, unsigned int length)
+// {
+
+//   Serial.print("Message arrived on topic: ");
+//   Serial.print(topic);
+//   Serial.print(". Message: ");
+//   String messageTemp;
+
+//   for (int i = 0; i < length; i++)
+//   {
+//     Serial.print((char)message[i]);
+//     messageTemp += (char)message[i];
+//   }
+//   Serial.println();
+
+//   if (String(topic).equals(commandTopic))
+//   {
+//     Serial.print("Changing output to ");
+//     lightState tmp = lightState(messageTemp);
+//     Serial.println(tmp);
+//   }
+//   sendStatusUpdate();
+// }
+
+void en(char *msg)
 {
-
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
-  String messageTemp;
-
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)message[i]);
-    messageTemp += (char)message[i];
-  }
-  Serial.println();
-
-  if (String(topic).equals(commandTopic))
-  {
-    Serial.print("Changing output to ");
-    lightState tmp = lightState(messageTemp);
-    Serial.println(tmp);
-  }
-  sendStatusUpdate();
+  Serial.println("enable handler");
 }
 
-
+void ds(char *msg)
+{
+  Serial.println("disable handler");
+}
 
 void setup()
 {
@@ -110,9 +125,7 @@ void setup()
 
   delay(1000);
 
-
-  statusUpdateTimer = UtilityTicker(1000);
-
+  statusUpdateTimer = UtilityTicker(10000);
 
   Server.on("/", rootPage);
   if (Portal.begin())
@@ -121,9 +134,19 @@ void setup()
     Serial.println("wifiFirstConnected: true");
   }
 
-  mqttClient.setServer(mqtt_server, 8883);
-  mqttClient.setCallback(callback);
+  // mqttClient.setServer(mqtt_server, 8883);
+  // mqttClient.setCallback(callback);
 
+  // Communicator::Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char * mqttUsername, char * mqttPassword, char * mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers)
+
+  SubscriptionHandler handlers[] = {{&cmdLighOverrideEnableTopic[0], en},
+                                    {&cmdLighhOverrideDisableTopic[0], ds}};
+ Serial.println("subscription handlers defined");
+
+  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, handlers, 2);
+   Serial.println("mqtt comm created");
+
+  // mqttClient.connect("groca1", "groca1", "T1kDKCqNzc7QQa4Lp9B4"))
 
   timeZone = new Timezone();
   timeZone.setLocation("CEST");
@@ -131,66 +154,66 @@ void setup()
   Serial.println("CEST synced time: " + timeZone.dateTime());
 
   setInterval(10);
-	setDebug(INFO);
+  setDebug(INFO);
 
+  lightscheduler = lightTimer(nullptr, 0, &timeZone, 2000);
+     Serial.println("light scheduler created");
 
-  lightscheduler = lightTimer(nullptr,1,&timeZone, 2000);
 }
 
-
-
-void reconnect()
-{
-  // Loop until we're reconnected
-  while (!mqttClient.connected())
-  {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (mqttClient.connect("groca1", "groca1", "T1kDKCqNzc7QQa4Lp9B4"))
-    {
-      Serial.println("connected");
-      // Subscribe
-      mqttClient.subscribe(commandTopic.c_str());
-      Serial.print("Subscribe to: ");
-      Serial.println(commandTopic);
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
-
+// void reconnect()
+// {
+//   // Loop until we're reconnected
+//   while (!mqttClient.connected())
+//   {
+//     Serial.print("Attempting MQTT connection...");
+//     // Attempt to connect
+//     if (mqttClient.connect("groca1", "groca1", "T1kDKCqNzc7QQa4Lp9B4"))
+//     {
+//       Serial.println("connected");
+//       // Subscribe
+//       mqttClient.subscribe(commandTopic.c_str());
+//       Serial.print("Subscribe to: ");
+//       Serial.println(commandTopic);
+//     }
+//     else
+//     {
+//       Serial.print("failed, rc=");
+//       Serial.print(mqttClient.state());
+//       Serial.println(" try again in 5 seconds");
+//       // Wait 5 seconds before retrying
+//       delay(5000);
+//     }
+//   }
+// }
 
 void loop()
 {
   Portal.handleClient();
-  if (!mqttClient.connected())
-  {
-    reconnect();
-  }
+  // if (!mqttClient.connected())
+  // {
+  //   reconnect();
+  // }
 
-  mqttClient.loop();
-  
+  // mqttClient.loop();
+  mqttComm->loop();
 
   statusUpdateTimer.loop();
-  if (statusUpdateTimer.hasTicked()){
+  if (statusUpdateTimer.hasTicked())
+  {
     statusUpdateTimer.rst();
     sendStatusUpdate();
   }
 
-  if(lightscheduler.getOnStatus())
+  if (lightscheduler.getOnStatus())
   {
     digitalWrite(LED_BUILTIN, HIGH);
-  }else{
+  }
+  else
+  {
     digitalWrite(LED_BUILTIN, LOW);
   }
 
-  lightscheduler.loop();
+  //lightscheduler.loop();
   events();
 }

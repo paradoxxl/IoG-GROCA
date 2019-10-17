@@ -6,21 +6,21 @@
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
 
-typedef void (*callback)(String);
+typedef void (*callback)(char*);
 
 struct SubscriptionHandler
 {
-    String Topic;
+    char *Topic;
     callback Callback;
 };
 
 class Communicator
 {
 private:
-    String _hostname;
-    String _username;
-    String _password;
-    String _mqttBrokerIP;
+    char *_hostname;
+    char *_username;
+    char *_password;
+    char *_mqttBrokerIP;
     uint16_t _mqttBrokerPort;
     int _numHandlers;
 
@@ -33,9 +33,9 @@ private:
     void subscribe();
 
 public:
-    Communicator(String mqttBrokerIP, uint16_t mqttBrokerPort, String mqttUsername, String mqttPassword, String mqttClientHostname, SubscriptionHandler subscriptionHandlers[], int lenHandlers);
+    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, SubscriptionHandler subscriptionHandlers[], int lenHandlers);
     void onMqttMessageReceived(char *topic, byte *message, unsigned int length);
-    void send(char *text, char *topic);
+    bool send(char *text, char *topic);
 
     void loop();
 };
