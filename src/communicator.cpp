@@ -53,15 +53,8 @@ Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mq
     _subscriptionHandlers = subscriptionHandlers;
     _numHandlers = lenHandlers;
 
-    Serial.println("communicator constructor: setcallback ...");
     _mqttClient.setCallback(std::bind(&Communicator::onMqttMessageReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    Serial.println("communicator constructor: setcallback OK");
-    Serial.println("communicator constructor: setserver ...");
     _mqttClient.setServer(_mqttBrokerIP, _mqttBrokerPort);
-    Serial.println("communicator constructor: setserver OK");
-
-    Serial.println("communicator constructor: connect ...");
-
     _mqttClient.connect(_hostname, _username, _password);
     Serial.println("communicator constructor: connect OK");
 

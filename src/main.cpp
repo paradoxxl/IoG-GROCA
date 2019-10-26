@@ -82,30 +82,6 @@ void sendStatusUpdate()
   }
 }
 
-// void callback(char *topic, byte *message, unsigned int length)
-// {
-
-//   Serial.print("Message arrived on topic: ");
-//   Serial.print(topic);
-//   Serial.print(". Message: ");
-//   String messageTemp;
-
-//   for (int i = 0; i < length; i++)
-//   {
-//     Serial.print((char)message[i]);
-//     messageTemp += (char)message[i];
-//   }
-//   Serial.println();
-
-//   if (String(topic).equals(commandTopic))
-//   {
-//     Serial.print("Changing output to ");
-//     lightState tmp = lightState(messageTemp);
-//     Serial.println(tmp);
-//   }
-//   sendStatusUpdate();
-// }
-
 void en(char *msg)
 {
   Serial.println("enable handler");
@@ -120,7 +96,6 @@ void setup()
 {
   Serial.begin(115200);
   Serial.println();
-  // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
 
   delay(1000);
@@ -133,11 +108,6 @@ void setup()
     Serial.println("WiFi connected: " + WiFi.localIP().toString());
     Serial.println("wifiFirstConnected: true");
   }
-
-  // mqttClient.setServer(mqtt_server, 8883);
-  // mqttClient.setCallback(callback);
-
-  // Communicator::Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char * mqttUsername, char * mqttPassword, char * mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers)
 
   SubscriptionHandler handlers[] = {{&cmdLighOverrideEnableTopic[0], en},
                                     {&cmdLighhOverrideDisableTopic[0], ds}};
@@ -161,47 +131,14 @@ void setup()
 
 }
 
-// void reconnect()
-// {
-//   // Loop until we're reconnected
-//   while (!mqttClient.connected())
-//   {
-//     Serial.print("Attempting MQTT connection...");
-//     // Attempt to connect
-//     if (mqttClient.connect("groca1", "groca1", "T1kDKCqNzc7QQa4Lp9B4"))
-//     {
-//       Serial.println("connected");
-//       // Subscribe
-//       mqttClient.subscribe(commandTopic.c_str());
-//       Serial.print("Subscribe to: ");
-//       Serial.println(commandTopic);
-//     }
-//     else
-//     {
-//       Serial.print("failed, rc=");
-//       Serial.print(mqttClient.state());
-//       Serial.println(" try again in 5 seconds");
-//       // Wait 5 seconds before retrying
-//       delay(5000);
-//     }
-//   }
-// }
-
 void loop()
 {
   Portal.handleClient();
-  // if (!mqttClient.connected())
-  // {
-  //   reconnect();
-  // }
-
-  // mqttClient.loop();
   mqttComm->loop();
 
   statusUpdateTimer.loop();
   if (statusUpdateTimer.hasTicked())
   {
-    statusUpdateTimer.rst();
     sendStatusUpdate();
   }
 
