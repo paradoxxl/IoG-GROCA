@@ -22,22 +22,27 @@ bool Communicator::send(char *text, char *topic)
 
 void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned int length)
 {
-    Serial.printf("received message on topic: %s\n", topic);
-    Serial.printf("command: %s\n", message);
+    Serial.printf("received message on topic: %s\tlen:%d\n", topic, strlen(topic));
+    Serial.printf("command: len:%d msg:%s\n", length, message);
     for (int i = 0; i < _numHandlers; i++)
     {
-        if (strcmp(_subscriptionHandlers[i].Topic, topic))
+        Serial.printf("check topic: %s\tlen:%d\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
+        if (_subscriptionHandlers[i].Topic == topic)
         {
-            Serial.printf("matched topic: %s\n", _subscriptionHandlers[i].Topic);
+            Serial.printf("check topic: %s\tlen:%d - matched\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
             //String cmd(message,length)
-            Serial.printf("%s", message);
-            _subscriptionHandlers[i].Callback((char *)message);
-            break;
+            Serial.printf("%sexecute callback now\n", (char *)message);
+            if(_subscriptionHandlers[i].Callback && _subscriptionHandlers[i].Callback != nullptr && _subscriptionHandlers[i].Callback != NULL){
+                Serial.println("callback ok");
+                _subscriptionHandlers[i].Callback();
+                Serial.println("callback executed");
+            }else{
+                Serial.println("callback bad");
+            }
+            return;
         }
-        else
-        {
-            Serial.printf("did not match topic: %s\n", _subscriptionHandlers[i].Topic);
-        }
+        Serial.printf("check topic: %s\tlen:%d - did not match\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
+
     }
 }
 

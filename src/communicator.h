@@ -6,7 +6,9 @@
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
 
-typedef void (*callback)(char*);
+#include <functional>
+
+typedef void (*callback)();
 
 struct SubscriptionHandler
 {

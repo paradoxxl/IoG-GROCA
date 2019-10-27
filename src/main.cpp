@@ -28,12 +28,6 @@ const char *mqtt_password = "T1kDKCqNzc7QQa4Lp9B4";
 const char *mqtt_id = "groca1";
 const uint16_t mqtt_Port = 8883;
 
-// WiFiClientSecure wifiClient;
-// PubSubClient mqttClient(wifiClient);
-// long lastMsg = 0;
-// char msg[50];
-// int value = 0;
-// String commandTopic = ("cabinet/" + hostname + "/command");
 String statusTopic = ("cabinet/" + hostname + "/status");
 
 String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/override/enable");
@@ -82,12 +76,12 @@ void sendStatusUpdate()
   }
 }
 
-void en(char *msg)
+void en()
 {
   Serial.println("enable handler");
 }
 
-void ds(char *msg)
+void ds()
 {
   Serial.println("disable handler");
 }
@@ -115,8 +109,6 @@ void setup()
 
   mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, handlers, 2);
    Serial.println("mqtt comm created");
-
-  // mqttClient.connect("groca1", "groca1", "T1kDKCqNzc7QQa4Lp9B4"))
 
   timeZone = new Timezone();
   timeZone.setLocation("CEST");
