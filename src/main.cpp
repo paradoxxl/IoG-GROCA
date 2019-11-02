@@ -34,6 +34,19 @@ String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/override/
 String cmdLighhOverrideDisableTopic = ("cabinet/" + hostname + "/command/override/disable");
 
 
+void en()
+{
+  Serial.println("enable handler");
+}
+
+void ds()
+{
+  Serial.println("disable handler");
+}
+
+  SubscriptionHandler handlers[] = {{&cmdLighOverrideEnableTopic[0], en},
+                                    {&cmdLighhOverrideDisableTopic[0], ds}};
+
 //StatusJSON
 DynamicJsonDocument doc(1024);
 
@@ -76,15 +89,6 @@ void sendStatusUpdate()
   }
 }
 
-void en()
-{
-  Serial.println("enable handler");
-}
-
-void ds()
-{
-  Serial.println("disable handler");
-}
 
 void setup()
 {
@@ -103,8 +107,7 @@ void setup()
     Serial.println("wifiFirstConnected: true");
   }
 
-  SubscriptionHandler handlers[] = {{&cmdLighOverrideEnableTopic[0], en},
-                                    {&cmdLighhOverrideDisableTopic[0], ds}};
+
  Serial.println("subscription handlers defined");
 
   mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, handlers, 2);

@@ -27,7 +27,7 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
     for (int i = 0; i < _numHandlers; i++)
     {
         Serial.printf("check topic: %s\tlen:%d\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
-        if (_subscriptionHandlers[i].Topic == topic)
+        if (strcmp(_subscriptionHandlers[i].Topic,topic) == 0)
         {
             Serial.printf("check topic: %s\tlen:%d - matched\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
             //String cmd(message,length)
