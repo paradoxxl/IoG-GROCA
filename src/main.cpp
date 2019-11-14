@@ -30,6 +30,7 @@ const uint16_t mqtt_Port = 8883;
 
 String statusTopic = ("cabinet/" + hostname + "/status");
 String commandReplyTopic = ("cabinet/" + hostname + "/commandReply");
+String wakeupTopic = ("cabinet/" + hostname + "/wakeup");
 
 String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/override/enable");
 String cmdLighhOverrideDisableTopic = ("cabinet/" + hostname + "/command/override/disable");
@@ -130,6 +131,9 @@ void setup()
   lightscheduler = lightTimer(nullptr, 0, &timeZone, 2000);
      Serial.println("light scheduler created");
 
+char wakeupMessage[50];
+sprintf(wakeupMessage, "{ \"Timestamp\":%lu }", timeZone.now());
+mqttComm->send(wakeupMessage, &wakeupTopic[0]);
 }
 
 void loop()
