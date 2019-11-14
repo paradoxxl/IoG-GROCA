@@ -29,19 +29,25 @@ const char *mqtt_id = "groca1";
 const uint16_t mqtt_Port = 8883;
 
 String statusTopic = ("cabinet/" + hostname + "/status");
+String commandReplyTopic = ("cabinet/" + hostname + "/commandReply");
 
 String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/override/enable");
 String cmdLighhOverrideDisableTopic = ("cabinet/" + hostname + "/command/override/disable");
 
 
-void en()
+bool en(char* s)
 {
   Serial.println("enable handler");
+  Serial.println(s);
+  return true;
 }
 
-void ds()
+bool ds(char* s)
 {
   Serial.println("disable handler");
+  Serial.println(s);
+  return false;
+
 }
 
   SubscriptionHandler handlers[] = {{&cmdLighOverrideEnableTopic[0], en},
@@ -110,7 +116,7 @@ void setup()
 
  Serial.println("subscription handlers defined");
 
-  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, handlers, 2);
+  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, handlers, 2, &commandReplyTopic[0]);
    Serial.println("mqtt comm created");
 
   timeZone = new Timezone();

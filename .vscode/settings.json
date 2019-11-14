@@ -6,7 +6,8 @@
     "files.associations": {
         "system_error": "cpp",
         "functional": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "string": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

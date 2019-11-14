@@ -34,7 +34,8 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
             Serial.printf("%sexecute callback now\n", (char *)message);
             if(_subscriptionHandlers[i].Callback && _subscriptionHandlers[i].Callback != nullptr && _subscriptionHandlers[i].Callback != NULL){
                 Serial.println("callback ok");
-                _subscriptionHandlers[i].Callback();
+                bool success =  _subscriptionHandlers[i].Callback((char *)message);
+                sendCommandReplay(success);
                 Serial.println("callback executed");
             }else{
                 Serial.println("callback bad");
@@ -46,7 +47,16 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
     }
 }
 
-Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers)
+    bool Communicator::sendCommandReplay(bool success){
+        if(success){
+            return send(&replySuccess[0],_commandReplyTopic);
+        }else{
+            return send(&replyFail[0], _commandReplyTopic);
+        }
+    }
+
+
+Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers, char *commandReplyTopic)
 {
     _mqttClient = PubSubClient(_wifiClientSecure);
     _username = mqttUsername;
@@ -54,6 +64,7 @@ Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mq
     _mqttBrokerIP = mqttBrokerIP;
     _mqttBrokerPort = mqttBrokerPort;
     _hostname = mqttClientHostname;
+    _commandReplyTopic = commandReplyTopic;
 
     _subscriptionHandlers = subscriptionHandlers;
     _numHandlers = lenHandlers;

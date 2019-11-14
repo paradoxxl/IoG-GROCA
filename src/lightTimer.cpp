@@ -83,6 +83,15 @@ void lightTimer::evaluateState()
     _isOn = s->State();
 }
 
+
+    void cmdOverrideEnable(char *msg);
+    void cmdDisableEnable(char *msg);
+    void cmdLightIntensity(char *msg);
+    void cmdLightPlan(char *msg);
+
+
+
+
 void lightTimer::loop()
 {
     ticker.loop();

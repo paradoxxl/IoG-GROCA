@@ -38,6 +38,11 @@ public:
     
     void evaluateState();
 
+    boolean cmdOverrideEnable(char *msg);
+    boolean cmdDisableEnable(char *msg);
+    boolean cmdLightIntensity(char *msg);
+    boolean cmdLightPlan(char *msg);
+
     void loop();
 };
 

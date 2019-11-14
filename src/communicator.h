@@ -8,7 +8,10 @@
 
 #include <functional>
 
-typedef void (*callback)();
+static String replySuccess = "{ \"Success\":true }";
+static String replyFail = "{ \"Success\":false }";
+
+typedef boolean (*callback)(char *cmd);
 
 struct SubscriptionHandler
 {
@@ -25,6 +28,7 @@ private:
     char *_mqttBrokerIP;
     uint16_t _mqttBrokerPort;
     int _numHandlers;
+    char *_commandReplyTopic;
 
     WiFiClientSecure _wifiClientSecure;
     PubSubClient _mqttClient;
@@ -35,9 +39,11 @@ private:
     void subscribe();
 
 public:
-    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, SubscriptionHandler subscriptionHandlers[], int lenHandlers);
+    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, SubscriptionHandler subscriptionHandlers[], int lenHandlers, char *commandReplyTopic);
     void onMqttMessageReceived(char *topic, byte *message, unsigned int length);
     bool send(char *text, char *topic);
+
+    bool sendCommandReplay(bool success);
 
     void loop();
 };
