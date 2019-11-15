@@ -25,9 +25,11 @@ private:
     time_t overrideEnd;
     float overrideIntensity;
 
+    Communicator *_communicator;
+
     
 public:
-    lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs);
+    lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs, Communicator *comm);
     lightTimer();
 
     void setSchedule(timeEvent<lightState> *events[], int length);

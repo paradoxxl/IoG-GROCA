@@ -129,8 +129,9 @@ void setup()
   setDebug(INFO);
   
 
+  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, &commandReplyTopic[0]);
 
-  lightscheduler = lightTimer(nullptr, 0, &timeZone, 2000);
+  lightscheduler = lightTimer(nullptr, 0, &timeZone, 2000, mqttComm);
   Serial.println("light scheduler created");
 
   mqttHandlers = new SubscriptionHandler[4]{
@@ -140,7 +141,6 @@ void setup()
     {&cmdLightPlanTopic[0], std::bind(&lightTimer::cmdPlan, &lightscheduler, std::placeholders::_1)}
     };
   
-  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, &commandReplyTopic[0]);
   mqttComm->setHandlers(mqttHandlers, 4);
 
   Serial.println("mqtt comm created");

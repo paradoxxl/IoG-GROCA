@@ -8,11 +8,12 @@
 // XXX: https://stackoverflow.com/questions/21295935/can-a-c-enum-class-have-methods
 
 lightTimer::lightTimer() {}
-lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs)
+lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs, Communicator *comm)
 {
     _timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
     _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::ON));
+    _communicator = comm;
 }
 
 bool lightTimer::getOnStatus()
