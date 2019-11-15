@@ -86,19 +86,19 @@ void lightTimer::evaluateState()
 
 
 
-    boolean cmdOverrideEnable(char *msg){
+    boolean lightTimer::cmdOverrideEnable(char *msg){
         Serial.println("lightTimer cmdOverrideEnable");
         return false;
     }
-    boolean cmdDisableOverride(char *msg){
+    boolean lightTimer::cmdDisableOverride(char *msg){
         Serial.println("lightTimer cmdDisableOverride");
         return false;
     }
-    boolean cmdIntensity(char *msg){
+    boolean lightTimer::cmdIntensity(char *msg){
         Serial.println("lightTimer cmdLightIntensity");
         return false;
     }
-    boolean cmdPlan(char *msg){
+    boolean lightTimer::cmdPlan(char *msg){
         Serial.println("lightTimer cmdLightPlan");
         return false;
     }

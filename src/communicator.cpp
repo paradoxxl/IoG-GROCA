@@ -48,15 +48,19 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
 }
 
     bool Communicator::sendCommandReplay(bool success){
+        char sucessmessage[50];
+
         if(success){
-            return send(&replySuccess[0],_commandReplyTopic);
+            sprintf(sucessmessage, replySuccess.c_str(), _timezone->now());
+
         }else{
-            return send(&replyFail[0], _commandReplyTopic);
+            sprintf(sucessmessage, replyFail.c_str(), _timezone->now());
         }
+        return send(sucessmessage,_commandReplyTopic);
     }
 
 
-Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, char *commandReplyTopic)
+Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, char *commandReplyTopic, Timezone *timezone)
 {
     _mqttClient = PubSubClient(_wifiClientSecure);
     _username = mqttUsername;
@@ -65,6 +69,7 @@ Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mq
     _mqttBrokerPort = mqttBrokerPort;
     _hostname = mqttClientHostname;
     _commandReplyTopic = commandReplyTopic;
+    _timezone = timezone;
 
 
 

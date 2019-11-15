@@ -64,7 +64,7 @@ DynamicJsonDocument doc(1024);
 UtilityTicker statusUpdateTimer;
 Timezone timeZone;
 
-lightTimer lightscheduler;
+lightTimer *lightscheduler;
 
 void rootPage()
 {
@@ -80,7 +80,7 @@ void sendStatusUpdate()
   Serial.println(timeZone.dateTime());
   doc.clear();
   doc["timestamp"] = timeZone.now();
-  doc["ledState"] = lightscheduler.getOnStatus();
+  doc["ledState"] = lightscheduler->getOnStatus();
 
   Serial.println("serialize status json");
   char res[128];
@@ -129,18 +129,18 @@ void setup()
   setDebug(INFO);
   
 
-  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, &commandReplyTopic[0]);
+  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, &commandReplyTopic[0],&timeZone);
 
-  lightscheduler = lightTimer(nullptr, 0, &timeZone, 2000, mqttComm);
+  lightscheduler = new lightTimer(nullptr, 0, &timeZone, 2000, mqttComm);
   Serial.println("light scheduler created");
 
   mqttHandlers = new SubscriptionHandler[4]{
-    {&cmdLighOverrideEnableTopic[0], std::bind(&lightTimer::cmdOverrideEnable, &lightscheduler, std::placeholders::_1)},
-    {&cmdLighhOverrideDisableTopic[0], std::bind(&lightTimer::cmdDisableOverride, &lightscheduler, std::placeholders::_1)},
-    {&cmdLightIntensityTopic[0], std::bind(&lightTimer::cmdIntensity, &lightscheduler, std::placeholders::_1)},
-    {&cmdLightPlanTopic[0], std::bind(&lightTimer::cmdPlan, &lightscheduler, std::placeholders::_1)}
+    {&cmdLighOverrideEnableTopic[0], std::bind(&lightTimer::cmdOverrideEnable, lightscheduler, std::placeholders::_1)},
+    {&cmdLighhOverrideDisableTopic[0], std::bind(&lightTimer::cmdDisableOverride, lightscheduler, std::placeholders::_1)},
+    {&cmdLightIntensityTopic[0], std::bind(&lightTimer::cmdIntensity, lightscheduler, std::placeholders::_1)},
+    {&cmdLightPlanTopic[0], std::bind(&lightTimer::cmdPlan, lightscheduler, std::placeholders::_1)}
     };
-  
+
   mqttComm->setHandlers(mqttHandlers, 4);
 
   Serial.println("mqtt comm created");
@@ -163,7 +163,7 @@ void loop()
     sendStatusUpdate();
   }
 
-  if (lightscheduler.getOnStatus())
+  if (lightscheduler->getOnStatus())
   {
     digitalWrite(LED_BUILTIN, HIGH);
   }

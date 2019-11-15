@@ -5,20 +5,15 @@
 
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
-
+#include <ezTime.h>
 #include <functional>
 
-static String replySuccess = "{ \"Success\":true }";
-static String replyFail = "{ \"Success\":false }";
-
-//typedef boolean (*callback)(char *cmd);
-
-
-typedef std::function<boolean(char*)> callback;
+static String replySuccess = "{ \"Timestamp\":%lu, \"Success\":true }";
+static String replyFail =  "{ \"Timestamp\":%lu, \"Success\":false }";
 struct SubscriptionHandler
 {
     char *Topic;
-    callback Callback;
+    std::function<boolean(char*)> Callback;
 };
 
 class Communicator
@@ -31,6 +26,7 @@ private:
     uint16_t _mqttBrokerPort;
     int _numHandlers;
     char *_commandReplyTopic;
+    Timezone *_timezone;
 
     WiFiClientSecure _wifiClientSecure;
     PubSubClient _mqttClient;
@@ -41,7 +37,7 @@ private:
     void subscribe();
 
 public:
-    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, char *commandReplyTopic);
+    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, char *commandReplyTopic, Timezone *timezone);
 
     void setHandlers(SubscriptionHandler subscriptionHandlers[], int lenHandlers);
     void onMqttMessageReceived(char *topic, byte *message, unsigned int length);
