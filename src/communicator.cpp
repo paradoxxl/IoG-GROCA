@@ -56,7 +56,7 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
     }
 
 
-Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, SubscriptionHandler *subscriptionHandlers, int lenHandlers, char *commandReplyTopic)
+Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char *mqttPassword, char *mqttClientHostname, char *commandReplyTopic)
 {
     _mqttClient = PubSubClient(_wifiClientSecure);
     _username = mqttUsername;
@@ -66,14 +66,18 @@ Communicator::Communicator(char *mqttBrokerIP, uint16_t mqttBrokerPort, char *mq
     _hostname = mqttClientHostname;
     _commandReplyTopic = commandReplyTopic;
 
-    _subscriptionHandlers = subscriptionHandlers;
-    _numHandlers = lenHandlers;
+
 
     _mqttClient.setCallback(std::bind(&Communicator::onMqttMessageReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     _mqttClient.setServer(_mqttBrokerIP, _mqttBrokerPort);
     _mqttClient.connect(_hostname, _username, _password);
     Serial.println("communicator constructor: connect OK");
 
+}
+
+void Communicator::setHandlers(SubscriptionHandler subscriptionHandlers[], int lenHandlers){
+    _subscriptionHandlers = subscriptionHandlers;
+    _numHandlers = lenHandlers;
     subscribe();
 }
 

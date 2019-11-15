@@ -8,6 +8,7 @@
 #include "timeEvent.h"
 #include "stateTree.h"
 #include "lightState.h"
+#include "communicator.h"
 
 
 class lightTimer
@@ -23,6 +24,7 @@ private:
     boolean overrideState;
     time_t overrideEnd;
     float overrideIntensity;
+
     
 public:
     lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs);
@@ -39,9 +41,9 @@ public:
     void evaluateState();
 
     boolean cmdOverrideEnable(char *msg);
-    boolean cmdDisableEnable(char *msg);
-    boolean cmdLightIntensity(char *msg);
-    boolean cmdLightPlan(char *msg);
+    boolean cmdDisableOverride(char *msg);
+    boolean cmdIntensity(char *msg);
+    boolean cmdPlan(char *msg);
 
     void loop();
 };

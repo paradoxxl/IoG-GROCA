@@ -12,6 +12,9 @@
 #include "lightState.h"
 #include "communicator.h"
 
+#include <functional>
+
+
 #define ONBOARDLED 5 // Built in LED on ESP-12/ESP-07
 #define SHOW_TIME_PERIOD 5000
 
@@ -32,8 +35,10 @@ String statusTopic = ("cabinet/" + hostname + "/status");
 String commandReplyTopic = ("cabinet/" + hostname + "/commandReply");
 String wakeupTopic = ("cabinet/" + hostname + "/wakeup");
 
-String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/override/enable");
-String cmdLighhOverrideDisableTopic = ("cabinet/" + hostname + "/command/override/disable");
+String cmdLighOverrideEnableTopic = ("cabinet/" + hostname + "/command/light/override/enable");
+String cmdLighhOverrideDisableTopic = ("cabinet/" + hostname + "/command/light/override/disable");
+String cmdLightIntensityTopic = ("cabinet/" + hostname + "/command/light/intensity");
+String cmdLightPlanTopic = ("cabinet/" + hostname + "/command/light/plan");
 
 
 bool en(char* s)
@@ -51,8 +56,7 @@ bool ds(char* s)
 
 }
 
-  SubscriptionHandler handlers[] = {{&cmdLighOverrideEnableTopic[0], en},
-                                    {&cmdLighhOverrideDisableTopic[0], ds}};
+SubscriptionHandler *mqttHandlers;
 
 //StatusJSON
 DynamicJsonDocument doc(1024);
@@ -114,11 +118,7 @@ void setup()
     Serial.println("wifiFirstConnected: true");
   }
 
-
- Serial.println("subscription handlers defined");
-
-  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, handlers, 2, &commandReplyTopic[0]);
-   Serial.println("mqtt comm created");
+  Serial.println("subscription handlers defined");
 
   timeZone = new Timezone();
   timeZone.setLocation("CEST");
@@ -127,9 +127,25 @@ void setup()
 
   setInterval(10);
   setDebug(INFO);
+  
+
 
   lightscheduler = lightTimer(nullptr, 0, &timeZone, 2000);
-     Serial.println("light scheduler created");
+  Serial.println("light scheduler created");
+
+  mqttHandlers = new SubscriptionHandler[4]{
+    {&cmdLighOverrideEnableTopic[0], std::bind(&lightTimer::cmdOverrideEnable, &lightscheduler, std::placeholders::_1)},
+    {&cmdLighhOverrideDisableTopic[0], std::bind(&lightTimer::cmdDisableOverride, &lightscheduler, std::placeholders::_1)},
+    {&cmdLightIntensityTopic[0], std::bind(&lightTimer::cmdIntensity, &lightscheduler, std::placeholders::_1)},
+    {&cmdLightPlanTopic[0], std::bind(&lightTimer::cmdPlan, &lightscheduler, std::placeholders::_1)}
+    };
+  
+  mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, &commandReplyTopic[0]);
+  mqttComm->setHandlers(mqttHandlers, 4);
+
+  Serial.println("mqtt comm created");
+
+
 
 char wakeupMessage[50];
 sprintf(wakeupMessage, "{ \"Timestamp\":%lu }", timeZone.now());

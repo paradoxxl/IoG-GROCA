@@ -11,8 +11,10 @@
 static String replySuccess = "{ \"Success\":true }";
 static String replyFail = "{ \"Success\":false }";
 
-typedef boolean (*callback)(char *cmd);
+//typedef boolean (*callback)(char *cmd);
 
+
+typedef std::function<boolean(char*)> callback;
 struct SubscriptionHandler
 {
     char *Topic;
@@ -39,7 +41,9 @@ private:
     void subscribe();
 
 public:
-    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, SubscriptionHandler subscriptionHandlers[], int lenHandlers, char *commandReplyTopic);
+    Communicator(char * mqttBrokerIP, uint16_t mqttBrokerPort, char *mqttUsername, char * mqttPassword, char * mqttClientHostname, char *commandReplyTopic);
+
+    void setHandlers(SubscriptionHandler subscriptionHandlers[], int lenHandlers);
     void onMqttMessageReceived(char *topic, byte *message, unsigned int length);
     bool send(char *text, char *topic);
 
