@@ -41,25 +41,13 @@ String cmdLightIntensityTopic = ("cabinet/" + hostname + "/command/light/intensi
 String cmdLightPlanTopic = ("cabinet/" + hostname + "/command/light/plan");
 
 
-bool en(char* s)
-{
-  Serial.println("enable handler");
-  Serial.println(s);
-  return true;
-}
+const uint8_t minIntensity = 153;  // equals to 60% as the LED driver should not go below that
 
-bool ds(char* s)
-{
-  Serial.println("disable handler");
-  Serial.println(s);
-  return false;
-
-}
 
 SubscriptionHandler *mqttHandlers;
 
 //StatusJSON
-DynamicJsonDocument doc(1024);
+DynamicJsonDocument statusJsonDoc(128);
 
 UtilityTicker statusUpdateTimer;
 Timezone timeZone;
@@ -78,13 +66,15 @@ void sendStatusUpdate()
 
   Serial.print("create status json ");
   Serial.println(timeZone.dateTime());
-  doc.clear();
-  doc["timestamp"] = timeZone.now();
-  doc["ledState"] = lightscheduler->getOnStatus();
+  statusJsonDoc.clear();
+  statusJsonDoc["timestamp"] = timeZone.now();
+  statusJsonDoc["ledState"] = lightscheduler->getOnStatus();
+  statusJsonDoc["ledIntensity"] = lightscheduler->getIntensity();
+
 
   Serial.println("serialize status json");
   char res[128];
-  int n = serializeJson(doc, res);
+  int n = serializeJson(statusJsonDoc, res);
   if (n > 0)
   {
     Serial.println("res ok");
@@ -131,7 +121,7 @@ void setup()
 
   mqttComm = new Communicator((char *)mqtt_server, mqtt_Port, (char *)mqtt_username, (char *)mqtt_password, (char *)mqtt_id, &commandReplyTopic[0],&timeZone);
 
-  lightscheduler = new lightTimer(nullptr, 0, &timeZone, 2000, mqttComm);
+  lightscheduler = new lightTimer(nullptr, 0, &timeZone, 2000, mqttComm, sendStatusUpdate, minIntensity);
   Serial.println("light scheduler created");
 
   mqttHandlers = new SubscriptionHandler[4]{

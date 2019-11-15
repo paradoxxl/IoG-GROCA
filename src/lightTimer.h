@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include <ezTime.h>
+#include <ArduinoJson.h>
 
 #include "utilityTicker.h"
 #include "timeEvent.h"
@@ -10,6 +11,7 @@
 #include "lightState.h"
 #include "communicator.h"
 
+typedef void (*statusInvokeCallback)(void);
 
 class lightTimer
 {
@@ -17,27 +19,33 @@ private:
     stateTree<lightState> *_stateTree;
     Timezone *_timezone;
     bool _isOn;
-    float _intensity;
+    uint8_t _intensity;
+    uint8_t _minIntensity;
     UtilityTicker ticker;
 
     boolean overrideActive;
     boolean overrideState;
     time_t overrideEnd;
-    float overrideIntensity;
+    uint8_t overrideIntensity;
 
     Communicator *_communicator;
 
+    DynamicJsonDocument *_commandJsonDocument;
+
+    statusInvokeCallback _statusUpdate;
+
+
     
 public:
-    lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs, Communicator *comm);
+    lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz, int refreshRateMs, Communicator *comm, statusInvokeCallback statusUpdate, uint8_t minIntensity);
     lightTimer();
 
     void setSchedule(timeEvent<lightState> *events[], int length);
 
-    void setOverride(int durationMiliseconds, boolean state, float intensity);
+    void setOverride(int durationMiliseconds, boolean state, uint8_t intensity);
     void removeOverride();
     bool getOnStatus();
-    float getIntensity();
+    uint8_t getIntensity();
 
     
     void evaluateState();
