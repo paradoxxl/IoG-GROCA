@@ -162,6 +162,6 @@ void loop()
     digitalWrite(LED_BUILTIN, LOW);
   }
 
-  //lightscheduler.loop();
+  lightscheduler->loop();
   events();
 }

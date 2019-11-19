@@ -22,16 +22,16 @@ bool Communicator::send(char *text, char *topic)
 
 void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned int length)
 {
-    Serial.printf("received message on topic: %s\tlen:%d\n", topic, strlen(topic));
-    Serial.printf("command: len:%d msg:%s\n", length, message);
+    Serial.printf("received message on topic: %s\tlen:%d\r\n", topic, strlen(topic));
+    Serial.printf("command: len:%d msg:%s\r\n", length, message);
     for (int i = 0; i < _numHandlers; i++)
     {
-        Serial.printf("check topic: %s\tlen:%d\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
+        Serial.printf("check topic: %s\tlen:%d\r\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
         if (strcmp(_subscriptionHandlers[i].Topic,topic) == 0)
         {
-            Serial.printf("check topic: %s\tlen:%d - matched\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
+            Serial.printf("check topic: %s\tlen:%d - matched\r\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
             //String cmd(message,length)
-            Serial.printf("%sexecute callback now\n", (char *)message);
+            Serial.printf("%sexecute callback now\r\n", (char *)message);
             if(_subscriptionHandlers[i].Callback && _subscriptionHandlers[i].Callback != nullptr && _subscriptionHandlers[i].Callback != NULL){
                 Serial.println("callback ok");
                 bool success =  _subscriptionHandlers[i].Callback((char *)message);
@@ -42,7 +42,7 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
             }
             return;
         }
-        Serial.printf("check topic: %s\tlen:%d - did not match\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
+        Serial.printf("check topic: %s\tlen:%d - did not match\r\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));
 
     }
 }

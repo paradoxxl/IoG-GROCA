@@ -66,7 +66,7 @@ T *stateTree<T>::getState(uint8_t hour, uint8_t minute)
     if (rootNode == nullptr)
     {
         Serial.println("stateTree<T>::getState rootnode null");
-        Serial.println("stateTree<T>::getState defaultstate null " + (_defaultState == nullptr));
+        Serial.printf("stateTree<T>::getState defaultstate null?%d \r\n", (_defaultState == nullptr));
 
         return _defaultState;
     }
@@ -142,16 +142,19 @@ uint16_t stateTree<T>::timeMerge(uint8_t hour, uint8_t minute)
 template <class T>
 stateNode<T> *stateTree<T>::searchLTNode(stateNode<T> *node, uint16_t time)
 {
-    Serial.println("stateTree<T>::searchLTNode " + (node == nullptr));
+    Serial.printf("stateNode<T>::searchLTNode nullpur?%d NULL?%d\r\n", (node == nullptr), (node == NULL));
+    if (node == NULL || node == nullptr){
+        return node;
+    }
 
     if (node->time == time)
     {
-        Serial.println("stateTree<T>::searchLTNode node->time == time ");
+        Serial.println("stateNode<T>::searchLTNode node->time == time ");
         return node;
     }
     if (time < node->time)
     {
-        Serial.println("stateTree<T>::searchLTNode time < node->time");
+        Serial.println("stateNode<T>::searchLTNode time < node->time");
 
         if (node->left == nullptr)
         {
