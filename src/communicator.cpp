@@ -2,13 +2,21 @@
 
 #include "communicator.h"
 
+
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
+
+/*
+    !The maximum message size, including header, is 128 bytes by default. This is configurable via MQTT_MAX_PACKET_SIZE in PubSubClient.h.
+*/
+
+
 
 void Communicator::loop()
 {
     if (!_mqttClient.connected())
     {
+        Serial.println("Reconnecting to MQTT");
         reconnect();
     }
 
@@ -40,6 +48,7 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
             }else{
                 Serial.println("callback bad");
             }
+            delete message;
             return;
         }
         Serial.printf("check topic: %s\tlen:%d - did not match\r\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));

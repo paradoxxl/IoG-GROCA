@@ -45,10 +45,12 @@ uint8_t lightTimer::getIntensity()
     return _intensity;
 }
 
+//TODO: why?
 void lightTimer::setSchedule(timeEvent<lightState> *events[], int length)
 {
     _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::OFF));
 }
+
 void lightTimer::setOverride(int durationMiliseconds, boolean state, uint8_t intensity)
 {
     overrideActive = true;
@@ -156,6 +158,33 @@ void lightTimer::evaluateState()
     }
     boolean lightTimer::cmdPlan(char *msg){
         Serial.println("lightTimer cmdLightPlan");
+
+        const char* tmp = (const char *)msg;
+        DynamicJsonDocument doc(2048);
+        DeserializationError error = deserializeJson(doc, tmp);
+
+        if (error) {
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.c_str());
+            return false;
+        }
+
+        JsonArray schedule = doc.as<JsonArray>();
+        _stateTree->clear();
+
+        Serial.printf("lightTimer cmdLightPlan - len plan: %d\r\n", schedule.size());
+        for(JsonVariant entry: schedule){
+            uint16_t time = entry["Time"];
+            boolean bstate = doc["State"];
+
+            Serial.printf("lightTimer cmdLightPlan - time: %d state:%d\r\n", time,bstate);
+            lightState state = bstate?lightState(lightState::ON): lightState(lightState::OFF);
+            _stateTree->insert(time,state);
+        }
+
+        
+
+
 
         _commandJsonDocument->clear();
         return false;

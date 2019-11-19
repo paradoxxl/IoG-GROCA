@@ -37,7 +37,11 @@ public:
     T *getState(uint8_t hour, uint8_t minute);
     void insertEvents(timeEvent<T> *events[], int length);
     void insert(uint8_t hour, uint8_t minute, T *state);
+    void insert(uint16_t time, T state);
     void remove(uint8_t hour, uint8_t minute);
+    void remove(uint16_t time);
+
+    void clear();
 };
 
 template <class T>
@@ -85,11 +89,12 @@ T *stateTree<T>::getState(uint8_t hour, uint8_t minute)
 template <class T>
 void stateTree<T>::insert(uint8_t hour, uint8_t minute, T *state)
 {
+    Serial.println("stateTree<T>::insert");
     stateNode<T> *newNode = {};
     newNode->time = timeMerge(hour, minute);
     newNode->state = state;
 
-    if (rootNode == NULL)
+    if (rootNode == NULL || rootNode == nullptr)
     {
         rootNode = newNode;
         return;
@@ -103,8 +108,45 @@ void stateTree<T>::insert(uint8_t hour, uint8_t minute, T *state)
 }
 
 template <class T>
+void stateTree<T>::insert(uint16_t time, T state)
+{
+    Serial.println("stateTree<T>::insert");
+    stateNode<T> *newNode = {};
+    newNode->time = time;
+    newNode->state = &state;
+
+    if (rootNode == NULL || rootNode == nullptr)
+    {
+        rootNode = newNode;
+        return;
+    }
+    if (rootNode->time == newNode->time)
+    {
+        rootNode->time = newNode->time;
+        return;
+    }
+    insertNode(rootNode, newNode);
+}
+
+//TODO: implement me
+template <class T>
 void stateTree<T>::remove(uint8_t hour, uint8_t minute)
 {
+
+}
+
+//TODO: implement me
+template <class T>
+void stateTree<T>::remove(uint16_t time)
+{
+
+}
+
+//TODO: Will the garbage collector kick in? Any pointers on nodes left?
+template <class T>
+void stateTree<T>::clear()
+{
+    rootNode = nullptr;
 }
 
 template <class T>

@@ -27,7 +27,6 @@ public:
 boolean State(){
     return value;
 }
- // constexpr bool IsYellow() const { return value == Banana; }
 
 private:
   Value value;
