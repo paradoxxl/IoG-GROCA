@@ -110,10 +110,11 @@ void setup()
 
   Serial.println("subscription handlers defined");
 
-  timeZone = new Timezone();
-  timeZone.setLocation("CEST");
+  setDebug(INFO);
+  // timeZone = new Timezone();
+  timeZone.setLocation("Europe/Zurich");
   waitForSync();
-  Serial.println("CEST synced time: " + timeZone.dateTime());
+  Serial.println("Europe/Zurich synced time: " + timeZone.dateTime());
 
   setInterval(10);
   setDebug(INFO);
