@@ -5,20 +5,32 @@
 ```json
 [
   {
-    "Time": 1111,
-    "State": true
+    "Time": 2100,
+    "State": "OFF"
   },
   {
-    "Time": 1,
-    "State": false
+    "Time": 800,
+    "State": "ON"
   },
   {
-    "Time": 2222,
-    "State": false
+    "Time": 200,
+    "State": "OFF"
   },
-    {
-    "Time": 6,
-    "State": true
+  {
+    "Time": 2000,
+    "State": "OFF"
+  },
+  {
+    "Time": 1400,
+    "State": "OFF"
+  },
+  {
+    "Time": 1600,
+    "State": "ON"
+  },
+  {
+    "Time": 1700,
+    "State": "OFF"
   }
 ]
 ```

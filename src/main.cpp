@@ -110,9 +110,9 @@ void setup()
 
   Serial.println("subscription handlers defined");
 
-  setDebug(INFO);
-  // timeZone = new Timezone();
   timeZone.setLocation("Europe/Zurich");
+  timeZone.setCache(0);
+
   waitForSync();
   Serial.println("Europe/Zurich synced time: " + timeZone.dateTime());
 
