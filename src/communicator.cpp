@@ -48,7 +48,7 @@ void Communicator::onMqttMessageReceived(char *topic, byte *message, unsigned in
             }else{
                 Serial.println("callback bad");
             }
-            delete message;
+            // delete message;
             return;
         }
         Serial.printf("check topic: %s\tlen:%d - did not match\r\n", _subscriptionHandlers[i].Topic, strlen(_subscriptionHandlers[i].Topic));

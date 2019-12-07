@@ -14,7 +14,7 @@ public:
 
   lightState() = default;
   lightState(String s){
-      value = s.equalsIgnoreCase("ON")?ON:OFF;
+      value = s.equalsIgnoreCase("ON")||s.equalsIgnoreCase("TRUE")?ON:OFF;
   }
   constexpr lightState(Value aState) : value(aState) { }
 

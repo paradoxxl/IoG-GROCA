@@ -7,7 +7,7 @@
 
 #include "utilityTicker.h"
 #include "timeEvent.h"
-#include "stateTree.h"
+#include "stateCircularList.h"
 #include "lightState.h"
 #include "communicator.h"
 
@@ -16,7 +16,7 @@ typedef void (*statusInvokeCallback)(void);
 class lightTimer
 {
 private:
-    stateTree<lightState> *_stateTree;
+    stateCircularList<lightState> *_stateCircularList;
     Timezone *_timezone;
     bool _isOn;
     uint8_t _intensity;

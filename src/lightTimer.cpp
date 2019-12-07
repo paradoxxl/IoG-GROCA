@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "lightTimer.h"
 #include "utilityTicker.h"
-#include "stateTree.h"
+#include "stateCircularList.h"
 #include "lightState.h"
 #include <ezTime.h>
 #include <ArduinoJson.h>
@@ -14,7 +14,7 @@ lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz
 {
     _timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
-    _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::ON));
+    _stateCircularList = new stateCircularList<lightState>(events, length, new lightState(lightState::ON));
     _communicator = comm;
     _commandJsonDocument = new DynamicJsonDocument(256);
 
@@ -48,7 +48,7 @@ uint8_t lightTimer::getIntensity()
 //TODO: why?
 void lightTimer::setSchedule(timeEvent<lightState> *events[], int length)
 {
-    _stateTree = new stateTree<lightState>(events, length, new lightState(lightState::OFF));
+    _stateCircularList = new stateCircularList<lightState>(events, length, new lightState(lightState::OFF));
 }
 
 void lightTimer::setOverride(int durationMiliseconds, boolean state, uint8_t intensity)
@@ -85,12 +85,13 @@ void lightTimer::evaluateState()
             overrideActive = false;
         }
     }
-    Serial.println("lightTimer getState");
 
-    lightState *s = _stateTree->getState(_timezone->hour(), _timezone->minute());
-    Serial.println("lightTimer getState ok");
+    uint8_t hour = _timezone->hour();
+    uint8_t minute = _timezone->minute();
+    Serial.printf("lightTimer getState for %d:%d\r\n", hour, minute);
 
-    Serial.println("lightTimer ison: ");
+    lightState *s = _stateCircularList->getState(hour,minute);
+    Serial.printf("lightTimer isOn?: %d\r\n", s->State());
 
     _isOn = s->State();
 }
@@ -170,24 +171,25 @@ void lightTimer::evaluateState()
         }
 
         JsonArray schedule = doc.as<JsonArray>();
-        _stateTree->clear();
+        _stateCircularList->clear();
 
         Serial.printf("lightTimer cmdLightPlan - len plan: %d\r\n", schedule.size());
         for(JsonVariant entry: schedule){
-            uint16_t time = entry["Time"];
-            boolean bstate = doc["State"];
-
-            Serial.printf("lightTimer cmdLightPlan - time: %d state:%d\r\n", time,bstate);
-            lightState state = bstate?lightState(lightState::ON): lightState(lightState::OFF);
-            _stateTree->insert(time,state);
+            uint16_t usinttime = entry["Time"];
+            String sstate = entry["State"];
+            lightState state = lightState(sstate);
+            // bool bstate = boolean(state);
+            Serial.printf("lightTimer cmdLightPlan - time: %d state:%d sstate:%s\r\n", usinttime,bool(state), sstate.c_str());
+        }
+        for(JsonVariant entry: schedule){
+            uint16_t usinttime = entry["Time"];
+            String sstate = entry["State"];
+            lightState state = lightState(sstate);
+            _stateCircularList->insert(usinttime,state);
         }
 
-        
-
-
-
         _commandJsonDocument->clear();
-        return false;
+        return true;
     }
 
 
