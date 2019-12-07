@@ -14,7 +14,7 @@ lightTimer::lightTimer(timeEvent<lightState> *events[], int length, Timezone *tz
 {
     _timezone = tz;
     ticker = UtilityTicker(refreshRateMs);
-    _stateCircularList = new stateCircularList<lightState>(events, length, new lightState(lightState::ON));
+    _stateCircularList = new stateCircularList<lightState>(events, length, lightState(lightState::ON));
     _communicator = comm;
     _commandJsonDocument = new DynamicJsonDocument(256);
 
@@ -48,7 +48,7 @@ uint8_t lightTimer::getIntensity()
 //TODO: why?
 void lightTimer::setSchedule(timeEvent<lightState> *events[], int length)
 {
-    _stateCircularList = new stateCircularList<lightState>(events, length, new lightState(lightState::OFF));
+    _stateCircularList = new stateCircularList<lightState>(events, length, lightState(lightState::OFF));
 }
 
 void lightTimer::setOverride(int durationMiliseconds, boolean state, uint8_t intensity)
@@ -90,10 +90,10 @@ void lightTimer::evaluateState()
     uint8_t minute = _timezone->minute();
     Serial.printf("lightTimer getState for %d:%d\r\n", hour, minute);
 
-    lightState *s = _stateCircularList->getState(hour,minute);
-    Serial.printf("lightTimer isOn?: %d\r\n", s->State());
+    lightState s = _stateCircularList->getState(hour,minute);
+    Serial.printf("lightTimer isOn?: %d - %d\r\n", s.State(), bool(s));
 
-    _isOn = s->State();
+    _isOn = s.State();
 }
 
 

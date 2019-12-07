@@ -11,7 +11,7 @@ template <class T>
 struct stateNode
 {
     uint16_t time;
-    T *state;
+    T state;
     stateNode<T> *previous;
     stateNode<T> *next;
 };
@@ -21,7 +21,7 @@ class stateCircularList
 {
 private:
     stateNode<T> *_currentNode;
-    T *_defaultState;
+    T _defaultState;
     stateNode<T> *nodeFromEvent(timeEvent<T> event);
 
     void insertNode(stateNode<T> *newNode);
@@ -30,10 +30,10 @@ private:
 
 public:
     stateCircularList();
-    stateCircularList(timeEvent<T> *events[], int length, T *defaultState);
-    T *getState(uint8_t hour, uint8_t minute);
+    stateCircularList(timeEvent<T> *events[], int length, T defaultState);
+    T getState(uint8_t hour, uint8_t minute);
     void insertEvents(timeEvent<T> *events[], int length);
-    void insert(uint8_t hour, uint8_t minute, T *state);
+    void insert(uint8_t hour, uint8_t minute, T state);
     void insert(uint16_t time, T state);
     void remove(uint8_t hour, uint8_t minute);
     void remove(uint16_t time);
@@ -46,60 +46,46 @@ void stateCircularList<T>::insertEvents(timeEvent<T> *events[], int length)
 {
     for (int i = 0; i < length; i++)
     {
-        insert(events[i]->hour, events[i]->minute, events[i]->state);
+        insert(events[i]->hour, events[i]->minute, *(events[i]->state));
     }
 }
 
 template <class T>
-stateCircularList<T>::stateCircularList(timeEvent<T> *events[], int length, T *defaultState)
+stateCircularList<T>::stateCircularList(timeEvent<T> *events[], int length, T defaultState)
 {
     _defaultState = defaultState;
     for (int i = 0; i < length; i++)
     {
-        insert(events[i]->hour, events[i]->minute, events[i]->state);
+        insert(events[i]->hour, events[i]->minute, *(events[i]->state));
     }
 }
 
 template <class T>
-T *stateCircularList<T>::getState(uint8_t hour, uint8_t minute)
+T stateCircularList<T>::getState(uint8_t hour, uint8_t minute)
 {
     Serial.println("stateCircularList<T>::getState");
     if (_currentNode == nullptr || _currentNode == NULL)
     {
         Serial.println("stateCircularList<T>::getState rootnode null");
-        Serial.printf("stateCircularList<T>::getState defaultstate null?%d \r\n", (_defaultState == nullptr));
 
         return _defaultState;
     }
 
     uint16_t time = timeMerge(hour, minute);
+    stateNode<T> *tmpNode = searchLTNode(_currentNode, time);
 
-    stateNode<T> *tmpNode = _currentNode;
-
-    // traverse next
-    while (tmpNode->time < time && tmpNode->next != NULL && tmpNode->next != nullptr && tmpNode->next->time <= time && tmpNode->time < tmpNode->next->time)
+    if (tmpNode == nullptr)
     {
-        tmpNode = tmpNode->next;
+        return _defaultState;
     }
 
-    // traverse previous
-    while (tmpNode->time > time && tmpNode->previous != NULL && tmpNode->previous != nullptr && tmpNode->previous->time >= time && tmpNode->time > tmpNode->previous->time)
-    {
-        tmpNode = tmpNode->previous;
-    }
+    Serial.printf("stateCircularList<T>::getState ltNode: %d \r\n", tmpNode->time);
 
-    if (tmpNode != nullptr && tmpNode != NULL)
-    {
-        Serial.printf("stateCircularList<T>::getState - set currentNode. before: %d-%d  now: %d-%d\r\n", _currentNode->time, bool(_currentNode->state), tmpNode->time, bool(tmpNode->state));
-        _currentNode = tmpNode;
-        return _currentNode->state;
-    }
-
-    return _defaultState;
+    return tmpNode->state;
 }
 
 template <class T>
-void stateCircularList<T>::insert(uint8_t hour, uint8_t minute, T *state)
+void stateCircularList<T>::insert(uint8_t hour, uint8_t minute, T state)
 {
     Serial.println("stateCircularList<T>::insert");
     stateNode<T> *newNode = {};
@@ -109,16 +95,6 @@ void stateCircularList<T>::insert(uint8_t hour, uint8_t minute, T *state)
     newNode->state = state;
     Serial.println("stateCircularList<T>::insert-state assigned");
 
-    // if (_currentNode == NULL || _currentNode == nullptr)
-    // {
-    //     _currentNode = newNode;
-    //     return;
-    // }
-    // if (_currentNode->time == newNode->time)
-    // {
-    //     _currentNode->state = newNode->state;
-    //     return;
-    // }
     insertNode(newNode);
 }
 
@@ -130,20 +106,9 @@ void stateCircularList<T>::insert(uint16_t time, T state)
     Serial.println("stateCircularList<T>::insert2x-statenode ptr created");
     newNode->time = time;
     Serial.println("stateCircularList<T>::insert2x-timemerged");
-    newNode->state = &state;
+    newNode->state = state;
     Serial.println("stateCircularList<T>::insert2x-state assigned");
 
-    // if (_currentNode == NULL || _currentNode == nullptr)
-    // {
-    //     Serial.println("stateCircularList<T>::insert2x-state assigned");
-    //     _currentNode = newNode;
-    //     return;
-    // }
-    // if (_currentNode->time == newNode->time)
-    // {
-    //     _currentNode->state = newNode->state;
-    //     return;
-    // }
     insertNode(newNode);
 }
 
@@ -170,7 +135,7 @@ template <class T>
 stateNode<T> *stateCircularList<T>::searchLTNode(stateNode<T> *head, uint16_t time)
 {
 
-    if (head->next == head)
+    if (head == nullptr || head->next == head)
     {
         return head;
     }
@@ -229,57 +194,31 @@ void stateCircularList<T>::insertNode(stateNode<T> *newNode)
 {
     Serial.println("stateCircularList<T>::insertNode - entry");
 
-    if (_currentNode == NULL || _currentNode == nullptr)
+    stateNode<T> *ltNode = searchLTNode(_currentNode, newNode->time);
+    if (ltNode == NULL || ltNode == nullptr)
     {
+        Serial.println("stateCircularList<T>::insertNode - first node in the list");
         _currentNode = newNode;
         _currentNode->previous = _currentNode;
         _currentNode->next = _currentNode;
         return;
     }
-    if (newNode == NULL || newNode == nullptr)
-    {
-        Serial.println("stateCircularList<T>:insertNode - node or newnode == null / nullptr");
-        return;
-    }
 
-    stateNode<T> *tmpNode = _currentNode;
-    uint16_t time = newNode->time;
+    newNode->previous = ltNode;
+    newNode->next = ltNode->next;
 
-    // traverse next
-    Serial.println("stateCircularList<T>:insertNode - traverse next entry");
-    while (tmpNode->time < time && tmpNode->next != NULL && tmpNode->next != nullptr && tmpNode->next->time <= time && tmpNode->time < tmpNode->next->time)
-    {
-        Serial.println("stateCircularList<T>:insertNode - traverse next");
-        tmpNode = tmpNode->next;
-    }
+    ltNode->next->previous = newNode;
+    ltNode->next = newNode;
+    Serial.printf("stateCircularList<T>::insertNode - inserted %d-%d between %d and %d\r\n", newNode->time, bool(newNode->state), newNode->previous->time, newNode->next->time);
 
-    // traverse previous
-    Serial.println("stateCircularList<T>:insertNode - traverse previous entry");
-    while (tmpNode->time > time && tmpNode->previous != NULL && tmpNode->previous != nullptr && tmpNode->previous->time >= time && tmpNode->time > tmpNode->previous->time)
+    Serial.print("stateCircularList<T>::insertNode - list:");
+    stateNode<T> *printNode = _currentNode;
+    do
     {
-        Serial.printf("stateCircularList<T>:insertNode - traverse previous- insert %d-%d. previous: %d-%d \r\n", newNode->time, bool(newNode->state), tmpNode->time, bool(tmpNode->state));
-        tmpNode = tmpNode->previous;
-    }
-
-    if (tmpNode->time == time)
-    {
-        Serial.println("stateCircularList<T>:insertNode - overwrite existing");
-        tmpNode->state = newNode->state;
-        return;
-    }
-
-    if (tmpNode != nullptr && tmpNode != NULL)
-    {
-        Serial.println("stateCircularList<T>:insertNode - insert inbetween");
-        newNode->next = tmpNode->next;
-        newNode->previous = tmpNode;
-        Serial.println("stateCircularList<T>:insertNode - insert inbetween - newNode neighbours ok");
-        tmpNode->next->previous = newNode;
-        Serial.println("stateCircularList<T>:insertNode - insert inbetween - next node neighbour ok");
-        tmpNode->next = newNode;
-        Serial.println("stateCircularList<T>:insertNode - insert inbetween - previous node neighbour ok");
-        return;
-    }
+        Serial.printf(" %d", printNode->time);
+        printNode = printNode->next;
+    } while (printNode != _currentNode);
+    Serial.println();
 }
 template <class T>
 uint16_t stateCircularList<T>::timeMerge(uint8_t hour, uint8_t minute)
